@@ -21,7 +21,8 @@ from urllib.parse import urljoin
 from urllib import request
 from urllib.error import URLError
 import urllib
-
+import queue
+import csv
 
 # Our version of the HTMLParser, which handles start tags differently than Python's
 # own HTMLParser. We overwrite the handle_starttag method to look for the desired
@@ -92,9 +93,62 @@ def fetch_links(url):
     return links
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 2 or not sys.argv[1].startswith("http://"):
-        prog = sys.argv[0]
-        print("usage: %s http://...\tShows all hyperlinks in an HTML page." % prog)
-    else:
-        print(fetch_links(sys.argv[1]))
+    start = "http://www.caltech.edu/"
+    start_links = fetch_links(start)
+    history = set() # set of tuples that contains all connections 
+    # between sites in the caltech domain. Each tuple contains two ints, 
+    # the first being the integer ID of the start site and the second being
+    # the integer ID of the second
+    links = queue.Queue() # queue of links to crawl
+
+    last_idx = 1 # current integer ID for sites
+    links_to_ints = {start: 1} # mapping of links to their IDs
+    crawled = [1] # integers corresponding to IDs that 
+    # should be included in our network
+
+    NUM_CRAWLS = 20
+
+    for link in start_links: 
+        if "caltech.edu" in link: 
+            links.put((start, link))
+            if link not in links_to_ints: 
+                last_idx += 1
+                links_to_ints[link] = last_idx
+                history.add((1, last_idx)) # perhaps not most optimal crawl 
+                # visiting sites in order of queue
+
+    for i in range(NUM_CRAWLS):
+        if (i % 5 == 0): 
+            print(f"Iteration: {i}")
+
+        prev, curr = links.get() # GET THE FIRST PAIR IN QUEUE
+        next_links = fetch_links(curr)
+        curr_ID = links_to_ints[curr] # get ID of current link
+        crawled.append(curr_ID) # note that we visited the current site
+        if next_links is None: 
+            continue
+
+        for link in next_links: 
+            if "caltech.edu" in link: # check if in caltech domain
+                links.put((curr, link)) # add new and next link to queue
+                # if we have already identified this node
+                if link in links_to_ints: 
+                    # add new connection to network
+                    history.add((curr_ID, links_to_ints[link]))
+                else:
+                    # we haven't seen this site before, add it to our dict and 
+                    # log the connection
+                    last_idx += 1
+                    links_to_ints[link] = last_idx
+                    history.add((curr_ID, links_to_ints[link]))
+
+    # Clean dataset to only include sites we crawled
+    cleaned_history = set()
+    for start, end in history: 
+        if start in crawled and end in crawled: 
+            cleaned_history.add((start, end))
+
+    print(cleaned_history)
+
+    cw = csv.writer(open("HW2/network.csv", "w"))
+    cw.writerows(list(cleaned_history))
