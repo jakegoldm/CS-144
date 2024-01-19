@@ -20,6 +20,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin
 from urllib import request
 from urllib.error import URLError
+from typing import Dict, Tuple, List, Set
 import urllib
 import queue
 import csv
@@ -92,46 +93,63 @@ def fetch_links(url):
         pass
     return links
 
-if __name__ == "__main__":
-    start = "http://www.caltech.edu/"
-    start_links = fetch_links(start)
-    history = set() # set of tuples that contains all connections 
+
+def crawl(): 
+    RESTRICTED_DOMAIN = "caltech.edu"
+    START = "http://www.caltech.edu/"
+    start_links = fetch_links(START)
+    history: Set[Tuple[int, int]] = set() # set of tuples that contains all connections 
     # between sites in the caltech domain. Each tuple contains two ints, 
     # the first being the integer ID of the start site and the second being
     # the integer ID of the second
-    links = queue.Queue() # queue of links to crawl
+    links: queue.Queue[Tuple[str, str]] = queue.Queue() # queue of links to crawl
+    # Implementation of BFS to crawl the network: iterate through all links from our
+    # start page and enqueue each subsequent site's data
 
     last_idx = 1 # current integer ID for sites
-    links_to_ints = {start: 1} # mapping of links to their IDs
-    crawled = [1] # integers corresponding to IDs that 
+    links_to_ints: Dict[str, int] = {START: 1} # mapping of links to their IDs
+    crawled: List[int] = [1] # integers corresponding to IDs that 
     # should be included in our network
 
-    NUM_CRAWLS = 20
+    MIN_CRAWLS = 75
 
     for link in start_links: 
-        if "caltech.edu" in link: 
-            links.put((start, link))
+        if RESTRICTED_DOMAIN in link: 
+            links.put((START, link))
             if link not in links_to_ints: 
                 last_idx += 1
                 links_to_ints[link] = last_idx
-                history.add((1, last_idx)) # perhaps not most optimal crawl 
-                # visiting sites in order of queue
+                history.add((1, last_idx))
 
-    for i in range(NUM_CRAWLS):
-        if (i % 5 == 0): 
-            print(f"Iteration: {i}")
+    def find_next_links(add_to_queue: bool):
+        """
+        Dequeue a link and find its neighbors. If add_to_queue, add the neighbors
+        as nodes to query in the links queue. In all cases, create edges between 
+        the current link and its neighbors. 
+        """ 
+        nonlocal last_idx
 
-        prev, curr = links.get() # GET THE FIRST PAIR IN QUEUE
+        _, curr = links.get()
+        # Ensure that we don't repeat a crawl
+        while True:        
+            if links_to_ints[curr] not in crawled: 
+                break
+            else: 
+                if links.empty(): 
+                    return
+                _, curr = links.get() # BFS: Get first pair in queue
+
         next_links = fetch_links(curr)
         curr_ID = links_to_ints[curr] # get ID of current link
         crawled.append(curr_ID) # note that we visited the current site
         if next_links is None: 
-            continue
+            return 
 
         for link in next_links: 
-            if "caltech.edu" in link: # check if in caltech domain
-                links.put((curr, link)) # add new and next link to queue
-                # if we have already identified this node
+            if RESTRICTED_DOMAIN in link: # check if in caltech domain
+                if add_to_queue: 
+                    links.put((curr, link)) # add new and next link to queue
+                    # if we have already identified this node
                 if link in links_to_ints: 
                     # add new connection to network
                     history.add((curr_ID, links_to_ints[link]))
@@ -142,7 +160,18 @@ if __name__ == "__main__":
                     links_to_ints[link] = last_idx
                     history.add((curr_ID, links_to_ints[link]))
 
+    for i in range(MIN_CRAWLS):
+        if i % 5 == 0: 
+            print(f"Iteration: {i}")
+        find_next_links(True)
+
+    while not links.empty():
+        if links.qsize() % 10 == 0: 
+            print(f"Clearing queue: {links.qsize()} remaining")
+        find_next_links(False)
+
     # Clean dataset to only include sites we crawled
+    print("Cleaning data")
     cleaned_history = set()
     for start, end in history: 
         if start in crawled and end in crawled: 
@@ -151,4 +180,9 @@ if __name__ == "__main__":
     print(cleaned_history)
 
     cw = csv.writer(open("HW2/network.csv", "w"))
+    cw.writerow(["source", "target"])
     cw.writerows(list(cleaned_history))
+
+
+if __name__ == "__main__":
+    crawl()
