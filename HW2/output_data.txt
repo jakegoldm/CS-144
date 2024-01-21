@@ -1,0 +1,4 @@
+Max diameter: 4
+Avg diameter: 2.359355034884514
+Clustering Coefficient: 0.5029637060589013
+Avg Clustering Coefficient: 0.8730280057594461
