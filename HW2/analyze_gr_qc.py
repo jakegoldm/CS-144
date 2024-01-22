@@ -93,4 +93,5 @@ fp.write(f"Max diameter: {max_diameter}\n")
 fp.write(f"Avg diameter: {avg_diameter}\n")
 fp.write(f"Clustering Coefficient: {clustering}\n")
 fp.write(f"Avg Clustering Coefficient: {avg_clustering}\n")
+fp.write(f"Num Triangles: {num_triangles}")
 

@@ -2,3 +2,4 @@ Max diameter: 17
 Avg diameter: 6.049380016182999
 Clustering Coefficient: 0.6287372354984735
 Avg Clustering Coefficient: 0.5568782161697919
+Num Triangles: 47779
