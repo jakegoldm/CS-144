@@ -9,7 +9,6 @@ A = 0.7
 B = 0.1
 
 seed = 3
-
 random.seed(seed)
 np.random.seed(seed)
 
@@ -38,6 +37,9 @@ plt.savefig("HW2/imgs/ssbm_spring.png")
 # Figure 2: Kamada-Kawai Layout
 plt.figure(figsize=(12, 6))
 pos = nx.kamada_kawai_layout(G)
-nx.draw(G, pos=pos, node_color=color_map, with_labels=True, edge_color="grey")
+edge_map = [
+    "black" if communities[u] == communities[v] else "silver" for u,v in G.edges]    
+nx.draw(
+    G, pos=pos, node_color=color_map, with_labels=True, edge_color=edge_map)
 plt.title('Kamada-Kawai Layout')
 plt.savefig("HW2/imgs/ssbm_kk.png")
