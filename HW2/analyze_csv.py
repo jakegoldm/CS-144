@@ -78,6 +78,16 @@ in_degree_values = np.array(list(indegrees.values()))
 out_degree_ccdf = 1 - np.cumsum(np.bincount(out_degree_values)[1:]) / G.number_of_nodes()
 in_degree_ccdf = 1 - np.cumsum(np.bincount(in_degree_values)[1:]) / G.number_of_nodes()
 
+# Make arrays equal length 
+diff = len(in_degree_ccdf) - len(out_degree_ccdf) 
+if diff > 0: 
+    for i in range(diff): 
+        out_degree_ccdf = np.append(out_degree_ccdf, 0)
+else: 
+    for i in range(diff):
+        in_degree_ccdf = np.append(in_degree_ccdf, 0)
+diff = len(in_degree_ccdf) - len(out_degree_ccdf) 
+
 plt.clf()
 plt.loglog(np.arange(1, len(out_degree_ccdf) + 1), out_degree_ccdf, label='Out-degree CCDF')
 plt.loglog(np.arange(1, len(in_degree_ccdf) + 1), in_degree_ccdf, label='In-degree CCDF')
