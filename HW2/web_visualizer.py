@@ -22,6 +22,9 @@ plt.figure(figsize=(18, 8))
 nx.draw(G100, pos=nx.circular_layout(G100), with_labels=True, width=0.3, node_color=node_colors, cmap=cmap)
 plt.savefig("HW2/imgs/web100_circle.png")
 
+plt.clf()
+nx.draw(G100, pos=nx.kamada_kawai_layout(G100), width=0.3, node_color=node_colors, cmap=cmap)
+plt.savefig("HW2/imgs/web100_kk.png")
 
 node_degrees = dict(G300.degree())
 node_colors = [node_degrees[node] for node in G300.nodes()]
@@ -30,5 +33,9 @@ norm = plt.Normalize(min(node_colors), max(node_colors))
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 plt.clf()
-nx.draw(G300, pos=nx.layout.kamada_kawai_layout(G300), width=0.3, node_color=node_colors, cmap=cmap)
+nx.draw(G300, pos=nx.kamada_kawai_layout(G300), width=0.3, node_color=node_colors, cmap=cmap)
 plt.savefig("HW2/imgs/web300_kk.png")
+
+plt.clf()
+nx.draw(G300, pos=nx.layout.spring_layout(G300, k=2), width=0.3, node_color=node_colors, cmap=cmap)
+plt.savefig("HW2/imgs/web300_spring.png")
