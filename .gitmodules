@@ -1,0 +1,3 @@
+[submodule "pandemaniac_2024_Network_Ninjas"]
+	path = pandemaniac_2024_Network_Ninjas
+	url = git@github.com:aditijc/pandemaniac_2024_Network_Ninjas.git
